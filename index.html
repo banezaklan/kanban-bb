@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>Backbone Kanban</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width">
+
+        <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css" rel="stylesheet">
+
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js" type="text/javascript"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js" type="text/javascript"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/backbone.js/1.1.0/backbone.js" type="text/javascript"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/backbone-localstorage.js/1.1.0/backbone.localStorage-min.js" type="text/javascript"></script> 
+        <script src="//cdnjs.cloudflare.com/ajax/libs/backbone-relational/0.8.5/backbone-relational.min.js" type="text/javascript"></script> 
+        <script src="//cdnjs.cloudflare.com/ajax/libs/backbone-forms/0.12.0/backbone-forms.min.js"></script>        
+        <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.2/js/bootstrap.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/backbone-forms/0.12.0/editors/list.min.js"></script>
+        <script src="backbone.bootstrap-modal.js"></script>
+
+
+        <style type="text/css">
+            .kanban-column {
+                vertical-align: top;
+                height: 200px;
+            }
+            .item-title {
+                float: left;
+            }
+        </style>        
+    </head>
+    <body>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Backbone Kanban</h3>
+                    </div>
+                    <div class="panel-body">
+                        <table id="kanbanBoardContainerTable" class="" width="100%" ></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <br/>
+        <h5>
+            Current Model Ordering in Collection:
+        </h5>
+        <pre id="json">
+        </pre>
+        
+        <script type="text/template" id="modal-form-template">
+            <div class="modal fade" id="form-modal-item-edit">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                            <h4 class="modal-title"><%= formTitle %></h4>
+                        </div>
+                        <div class="modal-body">
+
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary">Save changes</button>
+                        </div>
+                    </div><!-- /.modal-content -->
+                </div><!-- /.modal-dialog -->
+            </div><!-- /.modal -->
+        </script>
+
+        <script type="text/template" id="item-template">
+            <div class="col-md-12">
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        <button type="button" class="close destroy-item" data-dismiss="panel" aria-hidden="true" id="button-delete-kanban-item">
+                            <span class="glyphicon glyphicon-trash" ></span>
+                        </button>
+                        <div class="pull-right">&nbsp;&nbsp;&nbsp;</div>
+                        <button type="button" class="close" aria-hidden="true" id="button-edit-kanban-item">
+                            <span class="glyphicon glyphicon-pencil" ></span>
+                        </button>
+                        [<%= order %>] <%= itemName %> (<%= id %>)
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="panel-body">
+                        <%= itemContent %>
+                    </div>
+                </div>
+            </div>
+        </script>        
+
+        <script type="text/template" id="column-template">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <div class="pull-left">
+                        <%= itemName %>
+                    </div>
+                    <div class="pull-right">
+                        <button type="button" class="btn btn-sm btn-default" data-dismiss="panel" aria-hidden="true" id="button-add-kanban-item">
+                            <span class="glyphicon glyphicon-plus"></span> Add
+                        </button>
+                    </div>
+                    <div class="clearfix"></div>
+
+                </div>
+                <div class="panel-body">
+                    <div class="column-items" id="column-items">&nbsp;</div>
+                </div>
+            </div>           
+        </script>                 
+
+        <script src="app.js" type="text/javascript"></script> 
+
+        <script type="text/javascript" >
+
+            function prettyPrintData(data) {
+            $('#json').text(JSON.stringify(data.toJSON()).replace(/{/g, '\n\t{').slice(0, -1) + '\n]');
+            }
+
+            $(function() {
+
+            var board = new KanbanBoardModel([{itemName: 'Kanban Board'}]);
+
+            var kanbanColumns = new KanbanColumnCollection([
+            {id:1, order: 0, itemName: 'Column A', livesIn: board},
+            {id:2, order: 1, itemName: 'Column B', livesIn: board},
+            {id:3, order: 2, itemName: 'Column C', livesIn: board},     
+            ]);
+            //                console.log( board.get('kanban_columns').get(1) );
+
+            var kanbanItems = new KanbanItemCollection([
+            {id: 1, order: 0, itemName: 'Item 1', livesIn: board.get('kanban_columns').get(1)},
+            {id: 2, order: 1, itemName: 'Item 2', livesIn: board.get('kanban_columns').get(1)},
+            {id: 3, order: 2, itemName: 'Item 3', livesIn: board.get('kanban_columns').get(1)},
+            {id: 4, order: 3, itemName: 'Item 4', livesIn: board.get('kanban_columns').get(1)},
+            {id: 5, order: 4, itemName: 'Item 5', livesIn: board.get('kanban_columns').get(1)},
+
+            {id: 6, order: 0, itemName: 'Item 1', livesIn: board.get('kanban_columns').get(2)},
+            {id: 7, order: 1, itemName: 'Item 2', livesIn: board.get('kanban_columns').get(2)},
+            {id: 8, order: 2, itemName: 'Item 3', livesIn: board.get('kanban_columns').get(2)},
+            {id: 9, order: 3, itemName: 'Item 4', livesIn: board.get('kanban_columns').get(2)},
+            {id: 10, order: 4, itemName: 'Item 5', livesIn: board.get('kanban_columns').get(2)},
+
+            {id: 11, order: 0, itemName: 'Item 1', livesIn: board.get('kanban_columns').get(3)},
+            {id: 12, order: 1, itemName: 'Item 2', livesIn: board.get('kanban_columns').get(3)},
+            {id: 13, order: 2, itemName: 'Item 3', livesIn: board.get('kanban_columns').get(3)},
+            {id: 14, order: 3, itemName: 'Item 4', livesIn: board.get('kanban_columns').get(3)},
+            {id: 15, order: 4, itemName: 'Item 5', livesIn: board.get('kanban_columns').get(3)},
+            ]);
+
+
+            var boardView = new KanbanBoardView({ model:board, allColumns: kanbanColumns, allItems: kanbanItems });
+            $('#kanbanBoardContainerTable').append( boardView.render().$el );
+
+
+            boardView.on('boardsorted', function() {
+            prettyPrintData(board);
+            });
+
+            prettyPrintData(board);
+            });
+
+        </script>        
+
+
+
+
+    </body>
+</html>
