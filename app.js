@@ -104,7 +104,7 @@ var FormAddNewKanbanItem = Backbone.View.extend({
     initialize: function( options ) {
         this.bind("ok", this.okClick);
         var kanbanItem;
-        if(options===undefined && options.model===undefined){
+        if(typeof options === 'undefined' || typeof options.model==='undefined'){
             kanbanItem = new KanbanItemModel();
         }else{
             kanbanItem = options.model;
