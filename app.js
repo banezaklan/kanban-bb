@@ -49,7 +49,10 @@ var KanbanColumnModel = Backbone.RelationalModel.extend({
                 includeInJSON: 'id'
                         // 'relatedModel' is automatically set to 'Zoo'; the 'relationType' to 'HasOne'.
             }
-        }]
+    }],
+    schema: {
+        itemName:      { type: 'Text', validators: ['required'], title:'Column Name' },
+    }     
 
 });
 
@@ -65,8 +68,8 @@ var KanbanItemModel = Backbone.RelationalModel.extend({
         };
     },
     schema: {
-        itemName:      { type: 'Text', validators: ['required'] },
-        itemContent:   { type: 'Text', validators: ['required'] },
+        itemName:      { type: 'Text', validators: ['required'], title:'Item Name' },
+        itemContent:   { type: 'Text', validators: ['required'], title:'Item Content' },
     }    
    
 });
@@ -88,13 +91,7 @@ var KanbanColumnCollection = Backbone.Collection.extend({
 
 
 //--------------
-// Test Data
-//--------------
-
-
-
-//--------------
-// Views
+// Forms
 //--------------
 
 
@@ -129,9 +126,48 @@ var FormAddNewKanbanItem = Backbone.View.extend({
 
 });
 
+var FormEditColumn = Backbone.View.extend({
+    tagName: 'div',    
+    form: null,
+    initialize: function( options ) {
+        this.bind("ok", this.okClick);
+        var kanbanColumn;
+        if(typeof options === 'undefined' || typeof options.model==='undefined'){
+            kanbanColumn = new KanbanColumnModel();
+        }else{
+            kanbanColumn = options.model;
+        }
+        
+        this.form = new Backbone.Form({
+            model: kanbanColumn
+        }).render();        
+    },    
+    render: function() {
+
+        this.$el.html(this.form.el);
+        return this;
+    },
+    events: {
+
+    },
+    okClick: function(){
+//        console.log("Triggered FormAddNewKanbanItem:CreateNew");
+//        this.trigger('createNewItem', this.form.getValue() );
+    }
+
+});
+
+//--------------
+// Views
+//--------------
+
+
+
+
 var KanbanItemView = Backbone.View.extend({
     tagName: 'div',    
     template: _.template($('#item-template').html()),
+    formEdit: null,
     initialize: function() {
         this.listenTo(this.model, 'change', this.render);
     },    
@@ -145,7 +181,8 @@ var KanbanItemView = Backbone.View.extend({
     events: {
         'click .destroy-item': 'destroy',
         'drop': 'drop',
-        'click #button-edit-kanban-item' : 'editItem'
+        'click #button-edit-kanban-item' : 'editItem',
+
     },
     drop: function(event, index) {
         console.log('KanbanItemView drop');
@@ -165,19 +202,28 @@ var KanbanItemView = Backbone.View.extend({
         return this;
     },
     editItem: function(){
-        var form = new FormAddNewKanbanItem( {
+        this.formEdit = new FormAddNewKanbanItem( {
             model: this.model
         } );
         //Backbone.pubSub.on('FormAddNewKanbanItem:CreateNew',this.createNewItem); 
         var modal = new Backbone.BootstrapModal({ 
             title:'Edit Kanban Item', 
-            content: form, 
+            content: this.formEdit, 
             animate: true 
         }).open();
         modal.on('ok',function(){
+            var data = this.formEdit.form.getValue();
+
+            this.model.set('itemName',data.itemName);
+            this.model.set('itemContent',data.itemContent);
+            this.render();
+
+            //Just for demo, this will refresh the serilized json display
+            this.drop();
             
         },this);        
-    }
+    },
+
 });
 
 
@@ -188,8 +234,10 @@ var KanbanListView = Backbone.View.extend({
     _listItems: null,
     _listIsSyncing: false,
     orderAttr: 'order',
-    initialize: function() {
-               
+    formEdit: null,
+    colSize: 100,
+    initialize: function(options) {
+        this.colSize = options.colSize;
     },
     render: function() {
         this.$el.addClass('kanban-column');
@@ -197,7 +245,7 @@ var KanbanListView = Backbone.View.extend({
         
         this.el.id = 'column_' + this.model.id;
         this.$el.attr('data-id',this.model.id);
-        
+        this.$el.attr('style','width:'+this.colSize+'%');
         this._listItems = {};
 
         this.listenTo(this.collection, 'sync reset', this.listSync);
@@ -209,6 +257,8 @@ var KanbanListView = Backbone.View.extend({
     events: {
         'sortupdate': 'handleSortComplete',
         'click #button-add-kanban-item' : 'addKanbanItemClick',
+        'click #button-column-edit': 'columnEdit',
+        'click #button-column-trash': 'columnDelete'        
     },
     handleSortComplete: function() {
         
@@ -314,8 +364,31 @@ var KanbanListView = Backbone.View.extend({
         model.set('itemContent', formData.itemContent);
         model.set('livesIn', this.model.id);
         this.listAdd(model);
-    }
+    },
+    columnEdit: function(){
+        
+        this.formEdit = new FormEditColumn( {
+            model: this.model
+        } );
 
+        var modal = new Backbone.BootstrapModal({ 
+            title:'Edit Kanban Column', 
+            content: this.formEdit, 
+            animate: true 
+        }).open();
+        
+        modal.on('ok',function(){
+            var data = this.formEdit.form.getValue();
+            console.log(this.model);
+            this.model.set('itemName',data.itemName);
+            this.$el.find('#column-'+this.model.id+'-title').html(this.model.get('itemName'));
+            //Just for demo, this will refresh the serilized json display
+            this.trigger('sorted');
+        },this);         
+    },
+    columnDelete: function(){
+        
+    }
     
 });
 
@@ -330,8 +403,8 @@ var KanbanListView = Backbone.View.extend({
 //});
 
 var KanbanBoardView = Backbone.View.extend({
-    tagName: 'tr',
-    template: null,
+    tagName: 'div',
+    template: _.template($('#kanban-template').html()),
     allColumns: null,
     allItems: null,
     columnList: {},
@@ -343,13 +416,23 @@ var KanbanBoardView = Backbone.View.extend({
         Backbone.pubSub.on('moveItemToColumn', this.handleMoveItemToColumn, this);
 
     },
+    events: {
+        'click #button-add-kanban-column' : 'addKanbanColumnClick',
+        'click #button-kanban-edit': 'kanbanEdit',
+        'click #button-kanban-trash': 'kanbanDelete'        
+    },    
     render: function() {
+        this.$el.append( 
+                this.template() 
+        );
+        //Calculate width 
+        var colWidth = Math.round(100 / this.collection.length );
         this.collection.each( function(m){
             console.log(m);
-            var v = new KanbanListView( { model:m, collection: m.get('kanban_items') } );
+            var v = new KanbanListView( { model:m, collection: m.get('kanban_items'), colSize: colWidth } );
             this.columnList[m.id] = v;
             v.on('sorted', this.handleSorted, this );
-            this.$el.append(v.render().el);
+            this.$el.find('#kanban-row').append(v.render().el);
             
         }, this );        
         
@@ -372,6 +455,15 @@ var KanbanBoardView = Backbone.View.extend({
         
         kanbanItem.model.set('livesIn',this.collection.get(DestColumnId));
         this.columnList[DestColumnId].handleSortComplete();
+    },
+    addKanbanColumnClick: function(){
+        alert('TODO');
+    },
+    kanbanEdit: function(){
+        alert('TODO');
+    },
+    kanbanDelete: function(){
+        alert('TODO');
     }
       
 });

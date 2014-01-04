@@ -37,15 +37,8 @@ and open the template in the editor.
     <body>
 
         <div class="row">
-            <div class="col-md-12">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <h3 class="panel-title">Backbone Kanban</h3>
-                    </div>
-                    <div class="panel-body">
-                        <table id="kanbanBoardContainerTable" class="" width="100%" ></table>
-                    </div>
-                </div>
+            <div class="col-md-12" id="kanban-board-here">
+                
             </div>
         </div>
 
@@ -55,6 +48,36 @@ and open the template in the editor.
         </h5>
         <pre id="json">
         </pre>
+        
+        <script type="text/template" id="kanban-template">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+
+                        <div class="pull-left" >
+                            <h3 class="panel-title">Backbone Kanban</h3>
+                        </div>
+                        <div class="pull-right">
+                            <button type="button" class="btn btn-sm btn-default" data-dismiss="panel" aria-hidden="true" id="button-add-kanban-column" title="Add Kanban Column">
+                                <span class="glyphicon glyphicon-plus"></span>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-default" id="button-kanban-edit" title="Edit Kanban">
+                                <span class="glyphicon glyphicon-pencil"></span>
+                            </button>                        
+                            <button type="button" class="btn btn-sm btn-default" id="button-kanban-trash" title="Trash Kanban">
+                                <span class="glyphicon glyphicon-trash"></span>
+                            </button>    
+                            
+                        </div>                        
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="panel-body">
+                        <table id="kanbanBoardContainerTable" class="" width="100%" >
+
+                            <tr id="kanban-row"></tr>
+                        </table>
+                    </div>
+                </div>        
+        </script>
         
         <script type="text/template" id="modal-form-template">
             <div class="modal fade" id="form-modal-item-edit">
@@ -77,7 +100,7 @@ and open the template in the editor.
         </script>
 
         <script type="text/template" id="item-template">
-            <div class="col-md-12">
+            
                 <div class="panel panel-primary">
                     <div class="panel-heading">
                         <button type="button" class="close destroy-item" data-dismiss="panel" aria-hidden="true" id="button-delete-kanban-item">
@@ -94,19 +117,25 @@ and open the template in the editor.
                         <%= itemContent %>
                     </div>
                 </div>
-            </div>
+            
         </script>        
 
         <script type="text/template" id="column-template">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <div class="pull-left">
+                    <div class="pull-left" id="column-<%= id %>-title">
                         <%= itemName %>
                     </div>
                     <div class="pull-right">
-                        <button type="button" class="btn btn-sm btn-default" data-dismiss="panel" aria-hidden="true" id="button-add-kanban-item">
-                            <span class="glyphicon glyphicon-plus"></span> Add
+                        <button type="button" class="btn btn-sm btn-default" data-dismiss="panel" aria-hidden="true" id="button-add-kanban-item" title="Add Kanban Item">
+                            <span class="glyphicon glyphicon-plus"></span>
                         </button>
+                        <button type="button" class="btn btn-sm btn-default" id="button-column-edit" title="Edit Column">
+                            <span class="glyphicon glyphicon-pencil"></span>
+                        </button>                        
+                        <button type="button" class="btn btn-sm btn-default" id="button-column-trash" title="Trash Column">
+                            <span class="glyphicon glyphicon-trash"></span>
+                        </button>                                                
                     </div>
                     <div class="clearfix"></div>
 
@@ -130,39 +159,41 @@ and open the template in the editor.
             var board = new KanbanBoardModel([{itemName: 'Kanban Board'}]);
 
             var kanbanColumns = new KanbanColumnCollection([
-            {id:1, order: 0, itemName: 'Column A', livesIn: board},
-            {id:2, order: 1, itemName: 'Column B', livesIn: board},
-            {id:3, order: 2, itemName: 'Column C', livesIn: board},     
+                {id:1, order: 0, itemName: 'Column A', livesIn: board},
+                {id:2, order: 1, itemName: 'Column B', livesIn: board},
+                {id:3, order: 2, itemName: 'Column C', livesIn: board},     
+                {id:4, order: 2, itemName: 'Column D', livesIn: board},     
             ]);
+            
             //                console.log( board.get('kanban_columns').get(1) );
 
             var kanbanItems = new KanbanItemCollection([
-            {id: 1, order: 0, itemName: 'Item 1', livesIn: board.get('kanban_columns').get(1)},
-            {id: 2, order: 1, itemName: 'Item 2', livesIn: board.get('kanban_columns').get(1)},
-            {id: 3, order: 2, itemName: 'Item 3', livesIn: board.get('kanban_columns').get(1)},
-            {id: 4, order: 3, itemName: 'Item 4', livesIn: board.get('kanban_columns').get(1)},
-            {id: 5, order: 4, itemName: 'Item 5', livesIn: board.get('kanban_columns').get(1)},
+                {id: 1, order: 0, itemName: 'Item 1', livesIn: board.get('kanban_columns').get(1)},
+                {id: 2, order: 1, itemName: 'Item 2', livesIn: board.get('kanban_columns').get(1)},
+                {id: 3, order: 2, itemName: 'Item 3', livesIn: board.get('kanban_columns').get(1)},
+                {id: 4, order: 3, itemName: 'Item 4', livesIn: board.get('kanban_columns').get(1)},
+                {id: 5, order: 4, itemName: 'Item 5', livesIn: board.get('kanban_columns').get(1)},
 
-            {id: 6, order: 0, itemName: 'Item 1', livesIn: board.get('kanban_columns').get(2)},
-            {id: 7, order: 1, itemName: 'Item 2', livesIn: board.get('kanban_columns').get(2)},
-            {id: 8, order: 2, itemName: 'Item 3', livesIn: board.get('kanban_columns').get(2)},
-            {id: 9, order: 3, itemName: 'Item 4', livesIn: board.get('kanban_columns').get(2)},
-            {id: 10, order: 4, itemName: 'Item 5', livesIn: board.get('kanban_columns').get(2)},
+                {id: 6, order: 0, itemName: 'Item 1', livesIn: board.get('kanban_columns').get(2)},
+                {id: 7, order: 1, itemName: 'Item 2', livesIn: board.get('kanban_columns').get(2)},
+                {id: 8, order: 2, itemName: 'Item 3', livesIn: board.get('kanban_columns').get(2)},
+                {id: 9, order: 3, itemName: 'Item 4', livesIn: board.get('kanban_columns').get(2)},
+                {id: 10, order: 4, itemName: 'Item 5', livesIn: board.get('kanban_columns').get(2)},
 
-            {id: 11, order: 0, itemName: 'Item 1', livesIn: board.get('kanban_columns').get(3)},
-            {id: 12, order: 1, itemName: 'Item 2', livesIn: board.get('kanban_columns').get(3)},
-            {id: 13, order: 2, itemName: 'Item 3', livesIn: board.get('kanban_columns').get(3)},
-            {id: 14, order: 3, itemName: 'Item 4', livesIn: board.get('kanban_columns').get(3)},
-            {id: 15, order: 4, itemName: 'Item 5', livesIn: board.get('kanban_columns').get(3)},
+                {id: 11, order: 0, itemName: 'Item 1', livesIn: board.get('kanban_columns').get(3)},
+                {id: 12, order: 1, itemName: 'Item 2', livesIn: board.get('kanban_columns').get(3)},
+                {id: 13, order: 2, itemName: 'Item 3', livesIn: board.get('kanban_columns').get(3)},
+                {id: 14, order: 3, itemName: 'Item 4', livesIn: board.get('kanban_columns').get(3)},
+                {id: 15, order: 4, itemName: 'Item 5', livesIn: board.get('kanban_columns').get(3)},
             ]);
 
 
             var boardView = new KanbanBoardView({ model:board, allColumns: kanbanColumns, allItems: kanbanItems });
-            $('#kanbanBoardContainerTable').append( boardView.render().$el );
+            $('#kanban-board-here').append( boardView.render().$el );
 
 
             boardView.on('boardsorted', function() {
-            prettyPrintData(board);
+                prettyPrintData(board);
             });
 
             prettyPrintData(board);
