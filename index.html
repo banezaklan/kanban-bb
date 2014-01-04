@@ -50,33 +50,33 @@ and open the template in the editor.
         </pre>
         
         <script type="text/template" id="kanban-template">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
+            <div class="panel panel-default">
+                <div class="panel-heading">
 
-                        <div class="pull-left" >
-                            <h3 class="panel-title">Backbone Kanban</h3>
-                        </div>
-                        <div class="pull-right">
-                            <button type="button" class="btn btn-sm btn-default" data-dismiss="panel" aria-hidden="true" id="button-add-kanban-column" title="Add Kanban Column">
-                                <span class="glyphicon glyphicon-plus"></span>
-                            </button>
-                            <button type="button" class="btn btn-sm btn-default" id="button-kanban-edit" title="Edit Kanban">
-                                <span class="glyphicon glyphicon-pencil"></span>
-                            </button>                        
-                            <button type="button" class="btn btn-sm btn-default" id="button-kanban-trash" title="Trash Kanban">
-                                <span class="glyphicon glyphicon-trash"></span>
-                            </button>    
-                            
-                        </div>                        
-                        <div class="clearfix"></div>
+                    <div class="pull-left" >
+                        <h3 class="panel-title">Backbone Kanban</h3>
                     </div>
-                    <div class="panel-body">
-                        <table id="kanbanBoardContainerTable" class="" width="100%" >
+                    <div class="pull-right">
+                        <button type="button" class="btn btn-sm btn-default" data-dismiss="panel" aria-hidden="true" id="button-add-kanban-column" title="Add Kanban Column">
+                            <span class="glyphicon glyphicon-plus"></span>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-default" id="button-kanban-edit" title="Edit Kanban">
+                            <span class="glyphicon glyphicon-pencil"></span>
+                        </button>                        
+                        <button type="button" class="btn btn-sm btn-default" id="button-kanban-trash" title="Trash Kanban">
+                            <span class="glyphicon glyphicon-trash"></span>
+                        </button>    
 
-                            <tr id="kanban-row"></tr>
-                        </table>
-                    </div>
-                </div>        
+                    </div>                        
+                    <div class="clearfix"></div>
+                </div>
+                <div class="panel-body">
+                    <table id="kanbanBoardContainerTable" class="" width="100%" >
+
+                        <tr id="kanban-row"></tr>
+                    </table>
+                </div>
+            </div>        
         </script>
         
         <script type="text/template" id="modal-form-template">
@@ -102,17 +102,23 @@ and open the template in the editor.
         <script type="text/template" id="item-template">
             
                 <div class="panel panel-primary">
+
                     <div class="panel-heading">
-                        <button type="button" class="close destroy-item" data-dismiss="panel" aria-hidden="true" id="button-delete-kanban-item">
-                            <span class="glyphicon glyphicon-trash" ></span>
-                        </button>
-                        <div class="pull-right">&nbsp;&nbsp;&nbsp;</div>
-                        <button type="button" class="close" aria-hidden="true" id="button-edit-kanban-item">
-                            <span class="glyphicon glyphicon-pencil" ></span>
-                        </button>
-                        [<%= order %>] <%= itemName %> (<%= id %>)
+                        <div class="pull-left" id="column-<%= id %>-title">
+                            [<%= order %>] <%= itemName %> (<%= id %>)
+                        </div>
+                        <div class="pull-right">
+                            <div class="btn-group btn-group-xs">
+                                <button type="button" class="btn btn-primary btn-xs btn-default" id="button-edit-kanban-item" title="Edit Column">
+                                    <span class="glyphicon glyphicon-pencil"></span>
+                                </button>                        
+                                <button type="button" class="btn btn-primary btn-xs btn-default" id="button-delete-kanban-item" title="Trash Column">
+                                    <span class="glyphicon glyphicon-trash"></span>
+                                </button>                                                
+                            </div>
+                        </div>
                         <div class="clearfix"></div>
-                    </div>
+                    </div>                    
                     <div class="panel-body">
                         <%= itemContent %>
                     </div>
@@ -127,15 +133,23 @@ and open the template in the editor.
                         <%= itemName %>
                     </div>
                     <div class="pull-right">
-                        <button type="button" class="btn btn-sm btn-default" data-dismiss="panel" aria-hidden="true" id="button-add-kanban-item" title="Add Kanban Item">
-                            <span class="glyphicon glyphicon-plus"></span>
-                        </button>
-                        <button type="button" class="btn btn-sm btn-default" id="button-column-edit" title="Edit Column">
-                            <span class="glyphicon glyphicon-pencil"></span>
-                        </button>                        
-                        <button type="button" class="btn btn-sm btn-default" id="button-column-trash" title="Trash Column">
-                            <span class="glyphicon glyphicon-trash"></span>
-                        </button>                                                
+                        <div class="btn-group btn-group-xs">
+                            <button type="button" class="btn btn-sm btn-default" id="button-move-column-right" title="Add Kanban Item">
+                                <span class="glyphicon glyphicon-step-backward"></span>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-default" id="button-move-column-left" title="Add Kanban Item">
+                                <span class="glyphicon glyphicon-step-forward"></span>
+                            </button>                            
+                            <button type="button" class="btn btn-sm btn-default" data-dismiss="panel" aria-hidden="true" id="button-add-kanban-item" title="Add Kanban Item">
+                                <span class="glyphicon glyphicon-plus"></span>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-default" id="button-column-edit" title="Edit Column">
+                                <span class="glyphicon glyphicon-pencil"></span>
+                            </button>                        
+                            <button type="button" class="btn btn-sm btn-default" id="button-column-trash" title="Trash Column">
+                                <span class="glyphicon glyphicon-trash"></span>
+                            </button>            
+                        </div>
                     </div>
                     <div class="clearfix"></div>
 

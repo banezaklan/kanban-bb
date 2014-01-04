@@ -179,7 +179,7 @@ var KanbanItemView = Backbone.View.extend({
         return this;
     },
     events: {
-        'click .destroy-item': 'destroy',
+        'click #button-delete-kanban-item': 'destroy',
         'drop': 'drop',
         'click #button-edit-kanban-item' : 'editItem',
 
@@ -205,12 +205,13 @@ var KanbanItemView = Backbone.View.extend({
         this.formEdit = new FormAddNewKanbanItem( {
             model: this.model
         } );
-        //Backbone.pubSub.on('FormAddNewKanbanItem:CreateNew',this.createNewItem); 
+
         var modal = new Backbone.BootstrapModal({ 
             title:'Edit Kanban Item', 
             content: this.formEdit, 
             animate: true 
         }).open();
+        
         modal.on('ok',function(){
             var data = this.formEdit.form.getValue();
 
@@ -235,9 +236,10 @@ var KanbanListView = Backbone.View.extend({
     _listIsSyncing: false,
     orderAttr: 'order',
     formEdit: null,
-    colSize: 100,
+    parent: null,
     initialize: function(options) {
-        this.colSize = options.colSize;
+        this.parent = options.parent;
+        this.parent.on( 'kanbanColumnSizeChange', this.columnSizeChange, this );
     },
     render: function() {
         this.$el.addClass('kanban-column');
@@ -245,7 +247,7 @@ var KanbanListView = Backbone.View.extend({
         
         this.el.id = 'column_' + this.model.id;
         this.$el.attr('data-id',this.model.id);
-        this.$el.attr('style','width:'+this.colSize+'%');
+        this.$el.attr('style','width:'+this.parent.getColumnSize()+'%' );
         this._listItems = {};
 
         this.listenTo(this.collection, 'sync reset', this.listSync);
@@ -341,6 +343,14 @@ var KanbanListView = Backbone.View.extend({
     },
     remove: function() {
         _.invoke(this._listItems, 'remove');
+        this.$el.fadeOut("fast", function() {
+            this.remove();
+            //this.stopListening();
+            return this;
+        });
+        //Just for demo, this will refresh the serilized json display
+        this.trigger('sorted');        
+        return this;        
     },
     addKanbanItemClick: function() {
 
@@ -386,8 +396,14 @@ var KanbanListView = Backbone.View.extend({
             this.trigger('sorted');
         },this);         
     },
-    columnDelete: function(){
-        
+    columnDelete: function() {
+        this.model.destroy();
+        this.remove();
+    },
+    columnSizeChange: function(newSize){
+        //console.log(this);
+        //Calculate width for columns. It has to be dynamic.
+        this.$el.attr('style','width:'+newSize+'%');
     }
     
 });
@@ -425,15 +441,9 @@ var KanbanBoardView = Backbone.View.extend({
         this.$el.append( 
                 this.template() 
         );
-        //Calculate width 
-        var colWidth = Math.round(100 / this.collection.length );
+
         this.collection.each( function(m){
-            console.log(m);
-            var v = new KanbanListView( { model:m, collection: m.get('kanban_items'), colSize: colWidth } );
-            this.columnList[m.id] = v;
-            v.on('sorted', this.handleSorted, this );
-            this.$el.find('#kanban-row').append(v.render().el);
-            
+            this.kanbanAddColumn(m);
         }, this );        
         
         return this;
@@ -457,13 +467,53 @@ var KanbanBoardView = Backbone.View.extend({
         this.columnList[DestColumnId].handleSortComplete();
     },
     addKanbanColumnClick: function(){
-        alert('TODO');
+        var model = new KanbanColumnModel();
+        model.set('id',model.cid);
+        model.set('livesIn', this.model.id);
+        
+        this.formEdit = new FormEditColumn( {
+            model: model
+        } );
+
+        var modal = new Backbone.BootstrapModal({ 
+            title:'Add Kanban Column', 
+            content: this.formEdit, 
+            animate: true 
+        }).open();
+        
+        modal.on('ok',function(){
+            var data = this.formEdit.form.getValue();
+
+            model.set('itemName',data.itemName);
+            this.collection.add(model);
+            this.kanbanAddColumn(model);            
+            //Just for demo, this will refresh the serilized json display
+            this.handleSorted();
+            this.trigger('kanbanColumnSizeChange',this.getColumnSize());
+        },this);         
+        
+
     },
     kanbanEdit: function(){
         alert('TODO');
     },
     kanbanDelete: function(){
         alert('TODO');
+    },
+    kanbanAddColumn: function(columnModel){
+        var v = new KanbanListView( { model: columnModel, collection: columnModel.get('kanban_items'), parent: this } );
+        this.columnList[columnModel.id] = v;
+        v.on('sorted', this.handleSorted, this );
+        v.on('deleteMe', this.deleteKanbanColumn, this);
+        this.$el.find('#kanban-row').append(v.render().el);   
+        
+        
+    },
+    getColumnSize: function(){
+        return Math.round(100/this.collection.length);
+    },
+    deleteKanbanColumn: function(){
+        
     }
       
 });
