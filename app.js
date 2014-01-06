@@ -4,7 +4,8 @@ Backbone.pubSub = _.extend({}, Backbone.Events);
 
 var app = {}; // create namespace for our app
 app.config = {
-    siteRoot: 'http://localhost/backbone_test1/Kanban'
+    
+    siteRoot: 'http://localhost/backbone_test1/Kanban', //Needed for eventual ajax calls
 };
 //--------------
 // Models
@@ -219,7 +220,7 @@ var KanbanItemView = Backbone.View.extend({
             this.model.set('itemContent',data.itemContent);
             this.render();
 
-            //Just for demo, this will refresh the serilized json display
+            //Just for demo, this will refresh the serialized json display
             this.drop();
             
         },this);        
@@ -260,7 +261,8 @@ var KanbanListView = Backbone.View.extend({
         'sortupdate': 'handleSortComplete',
         'click #button-add-kanban-item' : 'addKanbanItemClick',
         'click #button-column-edit': 'columnEdit',
-        'click #button-column-trash': 'columnDelete'        
+        'click #button-column-trash': 'columnDelete',
+        'drop': 'drop',
     },
     handleSortComplete: function() {
         
@@ -404,19 +406,14 @@ var KanbanListView = Backbone.View.extend({
         //console.log(this);
         //Calculate width for columns. It has to be dynamic.
         this.$el.attr('style','width:'+newSize+'%');
+    },
+    drop: function(){
+        this.trigger('KanbanColumnMoved',[{view:this}]);
     }
     
 });
 
 
-//var KanbanBoardView = KanbanListView.extend({
-//    tagName: 'tr',
-//    template: null,
-//    itemView: KanbanListView,
-//    _listItems: null,
-//    _listIsSyncing: false,
-//    orderAttr: 'order',    
-//});
 
 var KanbanBoardView = Backbone.View.extend({
     tagName: 'div',
@@ -424,6 +421,7 @@ var KanbanBoardView = Backbone.View.extend({
     allColumns: null,
     allItems: null,
     columnList: {},
+    orderAttr: 'order',
     initialize: function(options) {
         this.collection = this.model.get('kanban_columns');
         this.allColumns = options.allColumns;
@@ -445,6 +443,18 @@ var KanbanBoardView = Backbone.View.extend({
         this.collection.each( function(m){
             this.kanbanAddColumn(m);
         }, this );        
+        
+        //setup drag-drop on columns
+        this.$el.find('#kanban-row').sortable({
+
+            tolerance: 'pointer',
+            connectWith: ".kanban-column",
+            stop: function(event, ui) {
+                ui.item.trigger('drop', ui.item);
+
+            },
+
+        });        
         
         return this;
     },
@@ -505,6 +515,7 @@ var KanbanBoardView = Backbone.View.extend({
         this.columnList[columnModel.id] = v;
         v.on('sorted', this.handleSorted, this );
         v.on('deleteMe', this.deleteKanbanColumn, this);
+        v.on('KanbanColumnMoved' ,this.columnMoved, this);
         this.$el.find('#kanban-row').append(v.render().el);   
         
         
@@ -514,20 +525,28 @@ var KanbanBoardView = Backbone.View.extend({
     },
     deleteKanbanColumn: function(){
         
-    }
-      
+    },
+    columnMoved: function(data){
+        console.log(data);
+        this.handleSortComplete();
+    },
+    handleSortComplete: function() {
+        
+        var oatr = this.orderAttr;
+
+        _.each(this.columnList, function(v) {
+            v.model.set(oatr, v.$el.index());
+        });
+
+        this.collection.sort({silent: true});
+        //this.listSetup();
+
+        this.trigger('sorted');
+
+    },      
 });
-
-
-
 
 
 //--------------
 // Initializers
 //--------------   
-//var kanbanItem = new KanbanItemModel();
-//var form = new Backbone.Form({
-//    model: kanbanItem
-//}).render();
-
-

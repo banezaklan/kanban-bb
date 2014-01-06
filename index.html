@@ -105,7 +105,8 @@ and open the template in the editor.
 
                     <div class="panel-heading">
                         <div class="pull-left" id="column-<%= id %>-title">
-                            [<%= order %>] <%= itemName %> (<%= id %>)
+                            <%= itemName %>
+                            <!--[<%= order %>] <%= itemName %> (<%= id %>)-->
                         </div>
                         <div class="pull-right">
                             <div class="btn-group btn-group-xs">
@@ -134,12 +135,7 @@ and open the template in the editor.
                     </div>
                     <div class="pull-right">
                         <div class="btn-group btn-group-xs">
-                            <button type="button" class="btn btn-sm btn-default" id="button-move-column-right" title="Add Kanban Item">
-                                <span class="glyphicon glyphicon-step-backward"></span>
-                            </button>
-                            <button type="button" class="btn btn-sm btn-default" id="button-move-column-left" title="Add Kanban Item">
-                                <span class="glyphicon glyphicon-step-forward"></span>
-                            </button>                            
+                          
                             <button type="button" class="btn btn-sm btn-default" data-dismiss="panel" aria-hidden="true" id="button-add-kanban-item" title="Add Kanban Item">
                                 <span class="glyphicon glyphicon-plus"></span>
                             </button>
@@ -165,52 +161,52 @@ and open the template in the editor.
         <script type="text/javascript" >
 
             function prettyPrintData(data) {
-            $('#json').text(JSON.stringify(data.toJSON()).replace(/{/g, '\n\t{').slice(0, -1) + '\n]');
+                $('#json').text(JSON.stringify(data.toJSON()).replace(/{/g, '\n\t{').slice(0, -1) + '\n]');
             }
 
             $(function() {
 
-            var board = new KanbanBoardModel([{itemName: 'Kanban Board'}]);
+                var board = new KanbanBoardModel([{itemName: 'Kanban Board'}]);
 
-            var kanbanColumns = new KanbanColumnCollection([
-                {id:1, order: 0, itemName: 'Column A', livesIn: board},
-                {id:2, order: 1, itemName: 'Column B', livesIn: board},
-                {id:3, order: 2, itemName: 'Column C', livesIn: board},     
-                {id:4, order: 2, itemName: 'Column D', livesIn: board},     
-            ]);
-            
-            //                console.log( board.get('kanban_columns').get(1) );
+                var kanbanColumns = new KanbanColumnCollection([
+                    {id:1, order: 0, itemName: 'Column A', livesIn: board},
+                    {id:2, order: 1, itemName: 'Column B', livesIn: board},
+                    {id:3, order: 2, itemName: 'Column C', livesIn: board},     
+                    {id:4, order: 2, itemName: 'Column D', livesIn: board},     
+                ]);
 
-            var kanbanItems = new KanbanItemCollection([
-                {id: 1, order: 0, itemName: 'Item 1', livesIn: board.get('kanban_columns').get(1)},
-                {id: 2, order: 1, itemName: 'Item 2', livesIn: board.get('kanban_columns').get(1)},
-                {id: 3, order: 2, itemName: 'Item 3', livesIn: board.get('kanban_columns').get(1)},
-                {id: 4, order: 3, itemName: 'Item 4', livesIn: board.get('kanban_columns').get(1)},
-                {id: 5, order: 4, itemName: 'Item 5', livesIn: board.get('kanban_columns').get(1)},
+                //                console.log( board.get('kanban_columns').get(1) );
 
-                {id: 6, order: 0, itemName: 'Item 1', livesIn: board.get('kanban_columns').get(2)},
-                {id: 7, order: 1, itemName: 'Item 2', livesIn: board.get('kanban_columns').get(2)},
-                {id: 8, order: 2, itemName: 'Item 3', livesIn: board.get('kanban_columns').get(2)},
-                {id: 9, order: 3, itemName: 'Item 4', livesIn: board.get('kanban_columns').get(2)},
-                {id: 10, order: 4, itemName: 'Item 5', livesIn: board.get('kanban_columns').get(2)},
+                var kanbanItems = new KanbanItemCollection([
+                    {id: 1, order: 0, itemName: 'Item 1', livesIn: board.get('kanban_columns').get(1)},
+                    {id: 2, order: 1, itemName: 'Item 2', livesIn: board.get('kanban_columns').get(1)},
+                    {id: 3, order: 2, itemName: 'Item 3', livesIn: board.get('kanban_columns').get(1)},
+                    {id: 4, order: 3, itemName: 'Item 4', livesIn: board.get('kanban_columns').get(1)},
+                    {id: 5, order: 4, itemName: 'Item 5', livesIn: board.get('kanban_columns').get(1)},
 
-                {id: 11, order: 0, itemName: 'Item 1', livesIn: board.get('kanban_columns').get(3)},
-                {id: 12, order: 1, itemName: 'Item 2', livesIn: board.get('kanban_columns').get(3)},
-                {id: 13, order: 2, itemName: 'Item 3', livesIn: board.get('kanban_columns').get(3)},
-                {id: 14, order: 3, itemName: 'Item 4', livesIn: board.get('kanban_columns').get(3)},
-                {id: 15, order: 4, itemName: 'Item 5', livesIn: board.get('kanban_columns').get(3)},
-            ]);
+                    {id: 6, order: 0, itemName: 'Item 1', livesIn: board.get('kanban_columns').get(2)},
+                    {id: 7, order: 1, itemName: 'Item 2', livesIn: board.get('kanban_columns').get(2)},
+                    {id: 8, order: 2, itemName: 'Item 3', livesIn: board.get('kanban_columns').get(2)},
+                    {id: 9, order: 3, itemName: 'Item 4', livesIn: board.get('kanban_columns').get(2)},
+                    {id: 10, order: 4, itemName: 'Item 5', livesIn: board.get('kanban_columns').get(2)},
 
-
-            var boardView = new KanbanBoardView({ model:board, allColumns: kanbanColumns, allItems: kanbanItems });
-            $('#kanban-board-here').append( boardView.render().$el );
+                    {id: 11, order: 0, itemName: 'Item 1', livesIn: board.get('kanban_columns').get(3)},
+                    {id: 12, order: 1, itemName: 'Item 2', livesIn: board.get('kanban_columns').get(3)},
+                    {id: 13, order: 2, itemName: 'Item 3', livesIn: board.get('kanban_columns').get(3)},
+                    {id: 14, order: 3, itemName: 'Item 4', livesIn: board.get('kanban_columns').get(3)},
+                    {id: 15, order: 4, itemName: 'Item 5', livesIn: board.get('kanban_columns').get(3)},
+                ]);
 
 
-            boardView.on('boardsorted', function() {
+                var boardView = new KanbanBoardView({ model:board, allColumns: kanbanColumns, allItems: kanbanItems });
+                $('#kanban-board-here').append( boardView.render().$el );
+
+
+                boardView.on('boardsorted', function() {
+                    prettyPrintData(board);
+                });
+
                 prettyPrintData(board);
-            });
-
-            prettyPrintData(board);
             });
 
         </script>        
