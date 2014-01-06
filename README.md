@@ -4,7 +4,6 @@ kanban-bb
 Kanban board in Backbone JS
 ---
 
-**This is work in progress at the moment, so excuse the code organization and all.**
 
 You can find a functional demo [here!](https://dl.dropboxusercontent.com/u/24609647/kanban-bb/index.html "Kanban Demo")
 
