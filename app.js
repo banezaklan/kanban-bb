@@ -428,6 +428,11 @@ var KanbanBoardView = Backbone.View.extend({
         this.allItems = options.allItems;
         this.bind('sorted',this.handleSorted);
         Backbone.pubSub.on('moveItemToColumn', this.handleMoveItemToColumn, this);
+//        var modal = new Backbone.BootstrapModal({ 
+//            title:'Kanban Backbone JS Demo', 
+//            content: "Welcome!<br>You can drag-drop Kanban colums and items to sort them. Try it out!", 
+//            animate: true 
+//        }).open();        
 
     },
     events: {
