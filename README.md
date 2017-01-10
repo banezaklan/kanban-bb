@@ -5,7 +5,7 @@ Kanban board in Backbone JS
 ---
 
 
-You can find a functional demo [here!](https://dl.dropboxusercontent.com/u/24609647/kanban-bb/index.html "Kanban Demo")
+You can find a functional demo [here!](http://banezaklan.github.io/kanban-bb/ "Kanban Demo")
 
 This is a general purpose Kanban board application made in Backbone JS. The reason for making it is mainly as an exercise to learn Backbone JS. 
 
